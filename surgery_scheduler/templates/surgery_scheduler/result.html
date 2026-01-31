@@ -1,0 +1,84 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<div class="header-banner" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 40px;">
+    <div>
+        <h1 style="margin:0;">📊 手術室指揮中心 - 智慧優化看板</h1>
+        <p style="margin:0; opacity: 0.9;">效能提升：{{ optimized.utilization_improvement }}% | 邏輯：4小時空檔跨房填補</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="{% url 'upload' %}" class="btn-medical" style="background: rgba(255,255,255,0.2); color: white; text-decoration: none; border: 1px solid white;">🏠 回首頁</a>
+        <button onclick="window.print()" class="btn-medical" style="background: white; color: #4f46e5; border: none;">📥 匯出更新排程</button>
+    </div>
+</div>
+
+<div class="container" style="max-width: 1300px; margin: auto; padding: 20px;">
+    {% if not rooms_data %}
+        <div class="glass-card" style="text-align: center; padding: 50px;">
+            <h3>目前尚無優化排程資料</h3>
+            <p>請回首頁重新上傳手術報表 PDF</p>
+            <a href="{% url 'upload' %}" class="btn-medical" style="text-decoration: none; display: inline-block; margin-top: 20px;">🚀 前往上傳頁面</a>
+        </div>
+    {% endif %}
+
+    {% for room_no, data in rooms_data.items %}
+    <div class="glass-card" style="border-top: 5px solid #4f46e5; margin-bottom: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="color: #4f46e5; margin: 0;">第 {{ room_no }} 手術房</h2>
+            <div class="badge" style="background: #ecfdf5; color: #059669; font-size: 1rem; padding: 10px 15px;">
+                ⏱️ 累計填補空檔：{{ data.total_saved }} 分鐘
+            </div>
+        </div>
+        <table class="surgery-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="text-align: left; color: #64748b; font-size: 0.85rem; border-bottom: 2px solid #f1f5f9;">
+                    <th style="padding: 12px;">優化時段</th>
+                    <th style="padding: 12px;">原始對照</th>
+                    <th style="padding: 12px;">病患 / 醫師</th>
+                    <th style="padding: 12px;">手術法 (AI 判定)</th>
+                    <th style="padding: 12px;">更動狀態</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in data.surgeries %}
+                <tr style="border-bottom: 1px solid #f1f5f9; {% if s.original_room != room_no %}background: #fff7ed;{% elif s.original_start_time != s.scheduled_start|date:'H:i' %}background: #f0f7ff;{% endif %}">
+                    <td style="padding: 12px;"><b>{{ s.scheduled_start|date:"H:i" }}</b></td>
+                    <td style="padding: 12px; color: #94a3b8; font-size: 0.85rem;">
+                        {% if s.original_start_time %}
+                            <span style="text-decoration: line-through;">{{ s.original_start_time }}</span><br>
+                            {% if s.original_room != room_no %}
+                                <b style="color: #ea580c;">原: {{ s.original_room }} 房</b>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px;">
+                        <div style="font-weight: 700;">{{ s.patient_name }}</div>
+                        <div style="font-size: 0.8rem; color: #64748b;">醫師: {{ s.doctor.name }}</div>
+                    </td>
+                    <td style="padding: 12px;">
+                        <div style="font-size: 0.9rem;">{{ s.surgery_type|truncatechars:35 }}</div>
+                        {% if s.estimated_duration <= 120 %}
+                            <span style="font-size: 0.7rem; color: #059669; background: #f0fdf4; padding: 2px 6px; border-radius: 4px;">AI: 小手術</span>
+                        {% else %}
+                            <span style="font-size: 0.7rem; color: #b91c1c; background: #fef2f2; padding: 2px 6px; border-radius: 4px;">AI: 大手術</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px;">
+                        {% if s.original_room != room_no %}
+                            <span class="badge" style="background: #ea580c; color: white;">🔄 跨房挪移</span>
+                        {% elif s.original_start_time != s.scheduled_start|date:'H:i' %}
+                            <span class="badge" style="background: #4338ca; color: white;">🚀 智慧遞補</span>
+                        {% else %}
+                            <span class="badge" style="background: #f1f5f9; color: #64748b;">錨點固定</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+    
+    <div style="text-align: center; margin: 40px 0;">
+        <a href="{% url 'upload' %}" class="btn-medical" style="text-decoration: none; background: #64748b; padding: 12px 30px;">🏠 返回排程上傳頁面</a>
+    </div>
+</div>

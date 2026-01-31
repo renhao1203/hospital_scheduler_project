@@ -1,0 +1,60 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<div class="header-banner">
+    <h1 style="margin:0;">🏥 手術室排程優化系統</h1>
+</div>
+
+<div class="container" style="max-width: 1100px; margin: auto; padding: 20px;">
+    <div class="glass-card" style="margin-bottom:20px;">
+        <h3>📥 上傳當日排程 PDF</h3>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" name="uploaded_file" required>
+            <button type="submit" class="btn-medical">開始 OCR 辨識</button>
+        </form>
+    </div>
+
+    {% if upload %}
+    <div class="glass-card" style="margin-bottom:20px;">
+        <button onclick="toggleRaw()" class="btn-medical" style="width:100%; background:#64748b;">🔍 查看 OCR 原始文字</button>
+        <div id="raw_box" style="display:none; background:#f8fafc; padding:15px; border-radius:8px; font-family:monospace; white-space:pre-wrap; max-height:300px; overflow-y:auto; border:1px solid #e2e8f0; margin-top:10px;">
+            {{ upload.raw_text }}
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 style="color:#00bcd4;">📋 OCR 識別結果 (共 {{ upload.extracted_data|length }} 筆)</h3>
+            <form action="{% url 'optimize' upload.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn-medical" style="background:#4338ca;">🚀 執行 AI 跨房填補優化</button>
+            </form>
+        </div>
+        <table class="surgery-table">
+            <thead>
+                <tr style="background:#00bcd4; color:white;">
+                    <th>手術室</th><th>時間</th><th>病患</th><th>醫師</th><th>手術法與代碼</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in upload.extracted_data %}
+                <tr>
+                    <td>{{ item.room }}</td>
+                    <td>{{ item.time }}</td>
+                    <td><b>{{ item.patient }}</b></td>
+                    <td>{{ item.doctor }}</td>
+                    <td style="font-size:0.85rem;">{{ item.surgery_type }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleRaw() {
+    var x = document.getElementById("raw_box");
+    x.style.display = (x.style.display === "none") ? "block" : "none";
+}
+</script>

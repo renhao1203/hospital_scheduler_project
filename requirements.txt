@@ -1,0 +1,6 @@
+Django==4.2.7
+Pillow==11.0.0
+opencv-python==4.10.0.84
+pytesseract==0.3.13
+numpy==2.1.0
+python-dateutil==2.9.0

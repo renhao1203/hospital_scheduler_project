@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>排程優化 - 手術室排程優化系統</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft JhengHei', Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2196F3; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
+        .info-box { background: #e3f2fd; border: 1px solid #2196F3; border-radius: 5px; padding: 15px; margin-bottom: 20px; }
+        .section { margin-bottom: 30px; }
+        .section-title { background: #00BCD4; color: white; padding: 12px 15px; border-radius: 5px; margin-bottom: 15px; font-size: 18px; }
+        .ocr-text { background: #f5f5f5; padding: 15px; border-radius: 5px; font-family: monospace; max-height: 300px; overflow-y: auto; margin-bottom: 20px; white-space: pre-wrap; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th { background: #2196F3; color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #ddd; }
+        tr:hover { background: #f5f5f5; }
+        .warning-box { background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; padding: 15px; margin-bottom: 20px; }
+        .btn { display: inline-block; padding: 12px 24px; background: #4CAF50; color: white; text-decoration: none; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #45a049; }
+        form { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 手術室排程優化系統</h1>
+        
+        <div class="info-box">
+            使用 {{ upload.extracted_data|length }} 筆識別資料
+        </div>
+
+        <div class="section">
+            <div class="section-title">🔍 OCR 原始文字</div>
+            <div class="ocr-text">{{ upload.raw_text }}</div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">📋 OCR 識別結果</div>
+            
+            {% if upload.extracted_data %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>手術室</th>
+                        <th>時間</th>
+                        <th>醫師</th>
+                        <th>手術類型</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in upload.extracted_data %}
+                    <tr>
+                        <td>{{ item.room }}</td>
+                        <td>{{ item.time }}</td>
+                        <td>{{ item.doctor|default:"未知醫師" }}</td>
+                        <td>{{ item.surgery_type|default:"一般手術" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn">執行排程優化</button>
+            </form>
+            {% else %}
+            <div class="warning-box">
+                ⚠️ 未識別到排程數據
+                <br><br>
+                請檢查上方的 OCR 原始文字，確認是否包含時間、手術室、醫師等資訊。
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

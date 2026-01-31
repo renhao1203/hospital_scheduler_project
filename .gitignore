@@ -1,0 +1,13 @@
+# Python 虛擬環境
+venv/
+.env
+
+# 資料庫與暫存檔
+db.sqlite3
+__pycache__/
+*.pyc
+
+# 🏥 醫療隱私資料：絕對不能上傳
+media/
+surgery_scheduler/media/
+*.pdf
